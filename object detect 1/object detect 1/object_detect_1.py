@@ -1,17 +1,3 @@
-#import cv2
-#import tensorflow as tf
-#cam = cv2.VideoCapture(0)
-#wait = cam.isOpened()
-#while(wait not in [27,0]):
-#    _,cap = cam.read()
-#    cv2.imshow('',cap)
-#    wait = cv2.waitKey(1)
-#    print(wait)
-#cam.release()
-#cv2.destroyAllWindows()
-#print("exit")
-#
-
 import numpy as np
 import os
 import six.moves.urllib as urllib
@@ -26,10 +12,12 @@ from matplotlib import pyplot as plt
 from PIL import Image
 
 import cv2
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # This is needed since the notebook is stored in the object_detection folder.
-sys.path.append("..")
+sys.path.append("..\..\object_detection")
+sys.path.append("..\..")
+
 
 
 # ## Object detection imports
@@ -61,7 +49,7 @@ DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
 PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
 
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
+PATH_TO_LABELS = os.path.join('..\..\object_detection\data', 'mscoco_label_map.pbtxt')
 
 NUM_CLASSES = 90
 
@@ -101,6 +89,8 @@ label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
+for id, name in category_index.items():
+    print(id,': ', name['name'])
 
 # ## Helper code
 
@@ -127,37 +117,37 @@ TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(
 IMAGE_SIZE = (12, 8)
 
 
+
 # In[10]:
+if(cap.isOpened()):
+    with detection_graph.as_default():
+      with tf.Session(graph=detection_graph) as sess:
+        while exit not in [ord('q'),27]:
+          ret, image_np = cap.read()
+          # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+          image_np_expanded = np.expand_dims(image_np, axis=0)
+          image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+          # Each box represents a part of the image where a particular object was detected.
+          boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+          # Each score represent how level of confidence for each of the objects.
+          # Score is shown on the result image, together with the class label.
+          scores = detection_graph.get_tensor_by_name('detection_scores:0')
+          classes = detection_graph.get_tensor_by_name('detection_classes:0')
+          num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+          # Actual detection.
+          (boxes, scores, classes, num_detections) = sess.run(
+              [boxes, scores, classes, num_detections],
+              feed_dict={image_tensor: image_np_expanded})
+          # Visualization of the results of a detection.
+          vis_util.visualize_boxes_and_labels_on_image_array(
+              image_np,
+              np.squeeze(boxes),
+              np.squeeze(classes).astype(np.int32),
+              np.squeeze(scores),
+              category_index,
+              use_normalized_coordinates=True,
+              line_thickness=8)
 
-with detection_graph.as_default():
-  with tf.Session(graph=detection_graph) as sess:
-    while True:
-      ret, image_np = cap.read()
-      # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-      image_np_expanded = np.expand_dims(image_np, axis=0)
-      image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-      # Each box represents a part of the image where a particular object was detected.
-      boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-      # Each score represent how level of confidence for each of the objects.
-      # Score is shown on the result image, together with the class label.
-      scores = detection_graph.get_tensor_by_name('detection_scores:0')
-      classes = detection_graph.get_tensor_by_name('detection_classes:0')
-      num_detections = detection_graph.get_tensor_by_name('num_detections:0')
-      # Actual detection.
-      (boxes, scores, classes, num_detections) = sess.run(
-          [boxes, scores, classes, num_detections],
-          feed_dict={image_tensor: image_np_expanded})
-      # Visualization of the results of a detection.
-      vis_util.visualize_boxes_and_labels_on_image_array(
-          image_np,
-          np.squeeze(boxes),
-          np.squeeze(classes).astype(np.int32),
-          np.squeeze(scores),
-          category_index,
-          use_normalized_coordinates=True,
-          line_thickness=8)
-
-      cv2.imshow('object detection', cv2.resize(image_np, (800,600)))
-      if cv2.waitKey(25) & 0xFF == ord('q'):
-        cv2.destroyAllWindows()
-        break
+          cv2.imshow('object detection', cv2.resize(image_np, (800,600)))
+          exit = cv2.waitKey(1)
+cv2.destroyAllWindows()
