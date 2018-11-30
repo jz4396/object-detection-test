@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import sys
 
 cam = cv2.VideoCapture(0)
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -10,6 +11,8 @@ try:
     cv2.destroyAllWindows()
 except:
     print('No Camera')
+    cv2.waitKey(0)
+    sys.exit(1)
 
 board_size = (5,6)
 
@@ -59,6 +62,8 @@ while(cv2.waitKey(1)==-1):
         cv2.imshow('rec',dst)
     except:
         print('Bad Dataset')
+        cv2.waitKey(0)
+        sys.exit(1)
 
 cv2.destroyAllWindows
 
@@ -66,5 +71,5 @@ print('Press space to save, anything else to exit')
 
 if(cv2.waitKey(0)==ord(' ')):
     print('Saving!!!!!')
-    np.savez('rect_Calibration',mtx,dist)
+    np.savez(os.environ['COMPUTERNAME']+'_rect_Calibration',mtx,dist)
     print('Calibration Saved')
