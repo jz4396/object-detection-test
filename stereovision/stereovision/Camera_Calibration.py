@@ -71,5 +71,5 @@ print('Press space to save, anything else to exit')
 
 if(cv2.waitKey(0)==ord(' ')):
     print('Saving!!!!!')
-    np.savez(os.environ['COMPUTERNAME']+'_rect_Calibration',mtx,dist)
+    np.savez(os.environ['COMPUTERNAME']+'_rect_Calibration',mtx=mtx,dist=dist)
     print('Calibration Saved')

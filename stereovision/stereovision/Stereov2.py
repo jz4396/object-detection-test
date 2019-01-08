@@ -35,31 +35,35 @@ x, y, w, h = roi
 
 
 
-# stereo = cv2.StereoBM_create(16,13)  #basic version
-stereo = cv2.StereoSGBM_create(minDisparity = 0,
-        numDisparities = 112-0,
-        blockSize = 2,
-        P1 = 8*3*3**2,
-        P2 = 32*3*3**2,
-        disp12MaxDiff = 1,
-        uniquenessRatio = 9,
-        speckleWindowSize = 50,
-        speckleRange = 64,
-        mode = cv2.STEREO_SGBM_MODE_HH4
-    )
+# SGBM Parameters -----------------
+window_size = 10                     # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
+ 
+left_matcher = cv2.StereoSGBM_create(
+    minDisparity=0,
+    numDisparities=192,             # max_disp has to be dividable by 16 f. E. HH 192, 256
+    blockSize=5,
+    P1=8 * 3 * window_size ** 2,    # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
+    P2=32 * 3 * window_size ** 2,
+    disp12MaxDiff=1,
+    uniquenessRatio=15,
+    speckleWindowSize=0,
+    speckleRange=2,
+    preFilterCap=63,
+    mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+)
 
-#stereo = cv2.StereoMatcher(minDisparity = 0,
-#        numDisparities = 112-0,
-#        blockSize = 2,
-#        P1 = 8*3*3**2,
-#        P2 = 32*3*3**2,
-#        disp12MaxDiff = 1,
-#        uniquenessRatio = 9,
-#        speckleWindowSize = 50,
-#        speckleRange = 64,
-#        mode = cv2.STEREO_SGBM_MODE_HH4
-#    )
+right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
 
+
+
+# FILTER Parameters
+lmbda = 80000
+sigma = 1.2
+visual_multiplier = 1.0
+ 
+wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=left_matcher)
+wls_filter.setLambda(lmbda)
+wls_filter.setSigmaColor(sigma)
 
 
 h, w = camL.read()[1].shape[:2]
@@ -95,19 +99,35 @@ while(True):
     dstL = dstL[y:y+h, x:x+w]
     dstR = cv2.undistort(camR.read()[1], mtx, dist, None, newcameramtx)
     dstR = dstR[y:y+h, x:x+w]
-    #dstR = cv2.cvtColor(dstR, cv2.COLOR_BGR2GRAY)
-    #dstL = cv2.cvtColor(dstL, cv2.COLOR_BGR2GRAY)
-    disp = stereo.compute(dstL,dstR)
+
+    displ = left_matcher.compute(dstL, dstR)  # .astype(np.float32)/16
+    dispr = right_matcher.compute(dstR, dstL)  # .astype(np.float32)/16
+    displ = np.int16(displ)
+    dispr = np.int16(dispr)
+    filteredImg = wls_filter.filter(displ, dstL, None, dispr)  # important to put "imgL" here!!!
+
+    filteredImg = cv2.normalize(src=filteredImg, dst=filteredImg, beta=0, alpha=255, norm_type=cv2.NORM_MINMAX);
+    disp = np.uint8(filteredImg)    
+
     cv2.imshow("Left Camera",dstL)
     cv2.imshow("Right Camera",dstR)
     #disp = cv2.resize(disp,None,fx=.25,fy=.25,interpolation = cv2.INTER_LINEAR)
     #plt.imshow(disp,'gray')
     #plt.pause(0.001)
-    cv2.imshow("disp",(disp-disp.min())/(112-32))
+    cv2.imshow("disp",disp) #(disp-disp.min())/(112-32))
     key = cv2.waitKey(1)
     if(key==27):
         break
     elif(key==ord(' ')):
+
+
+        h, w = disp.shape[:2]
+        f = 0.8*w                          # guess for focal length
+        Q = np.float32([[1, 0, 0, -0.5*w],
+                [0,-1, 0,  0.5*h], # turn points 180 deg around x-axis,
+                [0, 0, 0,     -f], # so that y-axis looks up
+                [0, 0, 1,      0]])
+
         pts3d = cv2.reprojectImageTo3D(disp,Q)
         color = cv2.cvtColor(dstL,cv2.COLOR_BGR2RGB)
         mask = disp > disp.min()

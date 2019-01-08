@@ -1,0 +1,4 @@
+local_repository(
+    name = "Tensorflow",
+    path = "D:/Tensorflow/tfbuild/v1.12.0",
+)

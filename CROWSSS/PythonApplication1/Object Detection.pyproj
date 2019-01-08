@@ -2,16 +2,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>2c7c7ff4-f804-4805-9162-3fff70e8573f</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>Stereov2.py</StartupFile>
+    <ProjectGuid>54eb45a8-82dd-4578-ac26-0d31c5d72397</ProjectGuid>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>stereovision</Name>
-    <RootNamespace>stereovision</RootNamespace>
-    <IsWindowsApplication>False</IsWindowsApplication>
+    <Name>Object Detection</Name>
+    <RootNamespace>PythonApplication1</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,9 +23,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Camera_Calibration.py" />
-    <Compile Include="Stereov2.py" />
-    <Compile Include="Stereo.py">
+    <Compile Include="module1.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
