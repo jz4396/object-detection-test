@@ -107,7 +107,7 @@ class Objdet:
             except:
                 cv.destroyAllWindows()
                 print("Detection Failed")
-                return -1
+                #return -1
             #timely.toc(True)
         cv.destroyAllWindows()
         #print("Average: "+str(timely.average()))

@@ -1,4 +1,4 @@
-from Object_detection import Objdet, timer
+from Object_detection import Objdet
 import cv2
 
 test = Objdet("..\..\object_detection")
