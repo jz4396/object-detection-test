@@ -60,6 +60,11 @@ class Objdet:
 
         self.sess = tf.Session(graph=self.detection_graph)
 
+    def listCategories(self):
+        print("\n\nCategories(ID:Name):")
+        for id, name in self.category_index.items():
+            print(id,': ', name['name'])
+
 
     def cam_Detection(self, cap):
         if(cap.isOpened()):
