@@ -70,6 +70,13 @@ class Objdet:
         if(cap.isOpened()):
             ret, self.image = cap.read()
             return self.overlay_Detection(self.image)
+    
+    def rpi_cam_Detection(self, camera, rawCapture):
+        camera.capture(rawCapture, format="bgr")
+        self.image = self.rawCapture.array
+        rawCapture.truncate(0)
+        return self.overlay_Detection(self.image)
+
 
     def run_Detection(self, image_np):
         with self.detection_graph.as_default():
@@ -103,7 +110,6 @@ class Objdet:
 
     def live_Detection(self, CAM_NUM, WIN_NAME=""):
         cap = cv.VideoCapture(CAM_NUM)
-        self.cam_Detection(cap)
         #timely = timer(True)
         while cv.waitKey(1) not in [27]:
         #for i in range(250):
@@ -112,12 +118,29 @@ class Objdet:
             except:
                 cv.destroyAllWindows()
                 print("Detection Failed")
-                #return -1
+                return -1
             #timely.toc(True)
         cv.destroyAllWindows()
         #print("Average: "+str(timely.average()))
 
+    def rpi_live_Detection(self, WIN_NAME=""):
+        from picamera.array import PiRGBArray
+        from picamera import PiCamera
 
+        camera = PiCamera()
+        rawCapture = PiRGBArray(camera)
+
+        timely = timer(True)
+        while cv.waitKey(1) not in [27]:
+            try:
+                cv.imshow(WIN_NAME, self.rpi_cam_Detection(camera, rawCapture))
+            except:
+                cv.destroyAllWindows()
+                print("Detection Failed")
+                return -1
+            timely.toc(True)
+        cv.destroyAllWindows()
+        print("Average: "+str(timely.average()))
 
 
 class timer:
