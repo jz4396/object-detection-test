@@ -23,6 +23,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="rpi_trackingtest.py" />
+    <Compile Include="rpi_timing_test.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Object_detection.py">
       <SubType>Code</SubType>
     </Compile>

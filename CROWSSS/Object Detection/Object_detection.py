@@ -67,13 +67,12 @@ class Objdet:
 
 
     def cam_Detection(self, cap):
-        if(cap.isOpened()):
-            ret, self.image = cap.read()
-            return self.overlay_Detection(self.image)
+        ret, self.image = cap.read()
+        return self.overlay_Detection(self.image)
     
     def rpi_cam_Detection(self, camera, rawCapture):
         camera.capture(rawCapture, format="bgr")
-        self.image = self.rawCapture.array
+        self.image = rawCapture.array
         rawCapture.truncate(0)
         return self.overlay_Detection(self.image)
 
@@ -108,39 +107,49 @@ class Objdet:
             line_thickness=8)
         return image_np
 
-    def live_Detection(self, CAM_NUM, WIN_NAME=""):
+    def live_Detection(self, CAM_NUM, tim=False,WIN_NAME=""):
         cap = cv.VideoCapture(CAM_NUM)
-        #timely = timer(True)
-        while cv.waitKey(1) not in [27]:
-        #for i in range(250):
-            try:
-                cv.imshow(WIN_NAME, self.cam_Detection(cap))
-            except:
-                cv.destroyAllWindows()
-                print("Detection Failed")
-                return -1
-            #timely.toc(True)
-        cv.destroyAllWindows()
-        #print("Average: "+str(timely.average()))
+        if tim:
+            timely = timer(True)
+        if(cap.isOpened()):
+            while cv.waitKey(1) not in [27,ord('q')]:
+            #for i in range(250):
+                try:
+                    cv.imshow(WIN_NAME, self.cam_Detection(cap))
+                except:
+                    cv.destroyAllWindows()
+                    print("Detection Failed")
+                    return -1
+                if tim:
+                    timely.toc(True)
+            cv.destroyAllWindows()
+            cap.release()
+        if tim:
+            print("Average: "+str(timely.average()))
 
-    def rpi_live_Detection(self, WIN_NAME=""):
+    def rpi_live_Detection(self, tim=False, resolution=(1920,1080), WIN_NAME=""):
         from picamera.array import PiRGBArray
         from picamera import PiCamera
 
         camera = PiCamera()
         rawCapture = PiRGBArray(camera)
-
-        timely = timer(True)
-        while cv.waitKey(1) not in [27]:
+        camera.resolution = resolution
+        if tim:
+            timely = timer(True)
+        while cv.waitKey(1) not in [27,ord('q')]:
+        #for i in range(250):
             try:
                 cv.imshow(WIN_NAME, self.rpi_cam_Detection(camera, rawCapture))
             except:
                 cv.destroyAllWindows()
                 print("Detection Failed")
                 return -1
-            timely.toc(True)
+            if tim:
+                timely.toc(True)
         cv.destroyAllWindows()
-        print("Average: "+str(timely.average()))
+        camera.close()
+        if tim:
+            print("Average: "+str(timely.average()))
 
 
 class timer:
