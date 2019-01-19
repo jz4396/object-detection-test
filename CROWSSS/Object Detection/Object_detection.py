@@ -73,6 +73,7 @@ class Objdet:
     def rpi_cam_Detection(self, camera, rawCapture):
         camera.capture(rawCapture, format="bgr")
         self.image = rawCapture.array
+        rawCapture.array.setflags(write=1)
         rawCapture.truncate(0)
         return self.overlay_Detection(self.image)
 
